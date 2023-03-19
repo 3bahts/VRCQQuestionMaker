@@ -16,6 +16,21 @@ interface Quiz {
   /** 更新日。ミリ秒単位のUNIX時刻。 */
   updatedAt: number;
 }
+/** パースしたQuizオブジェクトのバリデーションを行う。 */
+const isQuizObject = (quiz?: Partial<Quiz>): quiz is Quiz => {
+  return (
+    quiz != undefined &&
+    typeof quiz.question === 'string' &&
+    typeof quiz.answer === 'string' &&
+    Array.isArray(quiz.tags) &&
+    quiz.tags.every((tag) => typeof tag === 'string') &&
+    typeof quiz.explanation === 'string' &&
+    typeof quiz.editor === 'string' &&
+    typeof quiz.updatedAt === 'number'
+  );
+};
+/** クイズの問題リスト。 */
+type QuizList = { [key: number]: Quiz };
 
 /** クイズの問題を保持するストア。 */
 export const useQuizStore = defineStore(
@@ -24,7 +39,7 @@ export const useQuizStore = defineStore(
     /** 問題の件数。 */
     const count = ref(0);
     /** 問題リスト。 */
-    const quizList = ref({} as { [key: number]: Quiz });
+    const quizList = ref({} as QuizList);
     /** 問題リストを取得する。 */
     const getQuizList = () => {
       return Object.entries(quizList.value);
@@ -60,7 +75,34 @@ export const useQuizStore = defineStore(
     const removeQuiz = (id: number) => {
       delete quizList.value[id];
     };
-    return { getQuizList, getQuiz, addNewQuiz, updateQuiz, removeQuiz };
+    /** 問題リストをシリアライズする。 */
+    const exportJsonQuizList = () => JSON.stringify(quizList.value);
+    /** シリアライズされた問題リストをインポートする。 */
+    const importJsonQuizList = (jsonString: string) => {
+      const persedQuizList = JSON.parse(jsonString) as QuizList;
+      const newQuizList: QuizList = {};
+      let maxId = -1;
+      for (const idAndQuiz of Object.entries(persedQuizList)) {
+        const id = Number(idAndQuiz[0]);
+        const quiz = idAndQuiz[1];
+        if (!isQuizObject(quiz)) continue;
+        newQuizList[id] = quiz;
+        maxId = Math.max(maxId, id);
+      }
+      quizList.value = newQuizList;
+      count.value = maxId + 1;
+    };
+    return {
+      count,
+      quizList,
+      getQuizList,
+      getQuiz,
+      addNewQuiz,
+      updateQuiz,
+      removeQuiz,
+      exportJsonQuizList,
+      importJsonQuizList,
+    };
   },
   {
     persist: {
