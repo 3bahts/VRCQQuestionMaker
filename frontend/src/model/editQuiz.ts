@@ -21,6 +21,7 @@ export const useEditQuiz = (id: number) => {
       question: question.value,
       answer: answer.value,
       explanation: explanation.value,
+      updatedAt: Date.now(),
     };
     quizStore.updateQuiz(id, quiz.value);
   };
