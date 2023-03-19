@@ -74,6 +74,36 @@ const addQuiz = () => {
   const id = quizStore.addNewQuiz(userName.value);
   router.push(`/questions/${id}`);
 };
+
+/** 問題リストをエクスポートする。 */
+const exportJSON = () => {
+  const blob = new Blob([quizStore.exportJsonQuizList()], {
+    type: 'application/json',
+  });
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = 'quizList.json';
+  link.click();
+  link.remove();
+};
+
+/** 問題リストをインポートする。 */
+const importJSON = () => {
+  const input = document.createElement('input');
+  input.type = 'file';
+  input.accept = 'application/json';
+  input.addEventListener('change', (evt) => {
+    const file = (evt.target as HTMLInputElement).files?.[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.readAsText(file);
+    reader.onload = () => {
+      quizStore.importJsonQuizList(reader.result as string);
+    };
+  });
+  input.click();
+  input.remove();
+};
 </script>
 
 <template>
@@ -88,6 +118,10 @@ const addQuiz = () => {
         @row-click="jumpToEdit"
       />
     </div>
-    <q-btn color="primary" label="問題追加" @click="addQuiz" />
+    <div class="row q-gutter-sm">
+      <q-btn color="primary" label="問題追加" @click="addQuiz" />
+      <q-btn color="secondary" label="エクスポート(JSON)" @click="exportJSON" />
+      <q-btn color="secondary" label="インポート(JSON)" @click="importJSON" />
+    </div>
   </div>
 </template>
