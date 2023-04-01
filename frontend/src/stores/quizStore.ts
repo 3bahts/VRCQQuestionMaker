@@ -49,19 +49,34 @@ export const useQuizStore = defineStore(
       return quizList.value[id];
     };
     /** 問題を追加する。 */
-    const addNewQuiz = (editor: string) => {
+    const addNewQuiz = (
+      editor: string,
+      question?: string,
+      answer?: string,
+      explanation?: string
+    ) => {
       const newId = count.value;
-      quizList.value[newId] = makeNewQuiz(editor);
+      quizList.value[newId] = makeNewQuiz(
+        editor,
+        question,
+        answer,
+        explanation
+      );
       count.value++;
       return newId;
     };
     /** 問題を生成する。 */
-    const makeNewQuiz = (editor: string): Quiz => {
+    const makeNewQuiz = (
+      editor: string,
+      question?: string,
+      answer?: string,
+      explanation?: string
+    ): Quiz => {
       return {
-        question: '',
-        answer: '',
+        question: question ?? '',
+        answer: answer ?? '',
         tags: [],
-        explanation: '',
+        explanation: explanation ?? '',
         editor,
         updatedAt: Date.now(),
       };

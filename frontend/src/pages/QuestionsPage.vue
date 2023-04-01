@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { QTable } from 'quasar';
 import { useQuizStore } from 'src/stores/quizStore';
 import { useUserStore } from 'src/stores/userStore';
+import ImportTsvDialog from 'src/components/ImportTsvDialog.vue';
 
 const userStore = useUserStore();
 const quizStore = useQuizStore();
@@ -13,6 +14,8 @@ const router = useRouter();
 const userName = computed(() => userStore.name);
 /** 問題リスト。 */
 const quizList = computed(() => quizStore.getQuizList());
+/** TSVインポートダイアログの表示状態。 */
+const isImportTSVDialogVisible = ref(false);
 
 /** 問題表示テーブルの列定義。 */
 const defineColumns = (): Exclude<QTable['columns'], undefined> => {
@@ -75,6 +78,11 @@ const addQuiz = () => {
   router.push(`/questions/${id}`);
 };
 
+/** TSVで問題を追加するダイアログを表示する。 */
+const showTsvImportDialog = () => {
+  isImportTSVDialogVisible.value = true;
+};
+
 /** 問題リストをエクスポートする。 */
 const exportJSON = () => {
   const blob = new Blob([quizStore.exportJsonQuizList()], {
@@ -107,8 +115,10 @@ const importJSON = () => {
 </script>
 
 <template>
-  <div class="q-pa-md q-gutter-md column items-center justify-evenly">
-    <div>
+  <div
+    class="full-height q-pa-md q-gutter-md column items-center justify-start"
+  >
+    <div class="col width-75">
       <q-table
         title="問題リスト"
         :columns="columns"
@@ -118,10 +128,24 @@ const importJSON = () => {
         @row-click="jumpToEdit"
       />
     </div>
-    <div class="row q-gutter-sm">
+    <div class="col-auto row q-gutter-sm">
       <q-btn color="primary" label="問題追加" @click="addQuiz" />
+      <q-btn
+        color="secondary"
+        label="問題追加(TSV)"
+        @click="showTsvImportDialog"
+      />
       <q-btn color="secondary" label="エクスポート(JSON)" @click="exportJSON" />
       <q-btn color="secondary" label="インポート(JSON)" @click="importJSON" />
     </div>
+    <q-dialog v-model="isImportTSVDialogVisible">
+      <import-tsv-dialog />
+    </q-dialog>
   </div>
 </template>
+<style scoped>
+.width-75 {
+  width: 75%;
+  max-width: 45rem;
+}
+</style>
